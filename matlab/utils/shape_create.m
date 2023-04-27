@@ -41,10 +41,10 @@ default.aminor = 0.5;
 default.elong = 1.8;
 default.triu = 0.3;
 default.tril = 0.4;
-default.squo = -0.1;
+default.squo = -0.2;
 default.sqlo = -0.2;
-default.squi = -0.1;
-default.sqli = -0.3;
+default.squi = -0.2;
+default.sqli = -0.2;
 default.c_xplo = 0.1;
 default.c_xpup = 0;
 

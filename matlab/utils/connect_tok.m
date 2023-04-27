@@ -72,7 +72,8 @@ ctok.fcnames = circ.ccnames;
 
 % stuff that doesnt make sense to retain, or there's not a good 
 % coil-to-circuit transformation ==> just delete it
-x = {'fcsignals', 'fcdata', 'ecdata', 'ecnames'};
+% x = {'fcsignals', 'fcdata', 'ecdata', 'ecnames'};
+x = {'fcsignals', 'ecdata', 'ecnames'};
 
 for i = 1:length(x)
   if isfield(ctok, x{i})

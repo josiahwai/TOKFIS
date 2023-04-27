@@ -31,7 +31,7 @@ function models = response_models(eq, tok, iplcirc, Rp, plasma_model)
   for i = 1:length(plasma_model)
     x = plasma_model{i};  
     % try
-      fprintf('building %s sys ...\n', x);
+    % fprintf('building %s sys ...\n', x);
       fun = str2func(['build_' x '_sys']); 
       models.(x) = fun(eq, tok, iplcirc, Rp);
     % catch

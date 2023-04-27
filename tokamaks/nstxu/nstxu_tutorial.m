@@ -1,27 +1,27 @@
-% workflow tutorial for designing a shape controller - NSTXU
+% WORKFLOW TUTORIAL FOR DESIGNING A SHAPE CONTROLLER - NSTXU
 clear all; clc; close all
 
 tok_fn = 'nstxu_obj_2016_GSgrid33x33_npp4x4.mat';
 eqs_fn = './eq/eqs6565.mat';
 
-% load some equilibria and geometry
+% LOAD SOME EQUILIBRIA AND GEOMETRY
 % (to create different equilibria, see generate_eqs.m)
 tok = load(tok_fn).tok_data_struct;
 eqs = load(eqs_fn).eqs;
 eq = eqs{3};
 
-% connect coils-->circuits
+% CONNECT COILS-->CIRCUITS
 circ = nstxu_circ();
 tok = connect_tok(tok, circ);          
 
 
-% build the vacuum model
+% BUILD THE VACUUM MODEL
 sys = response_models([], tok, 0, 0, 'vacuum');
 sys = sys.vacuum;
 
 
 
-% design a coil current controller
+% DESIGN A COIL CURRENT CONTROLLER
 %
 % K = nstxu_coilcontrol_pid();
 % K = nstxu_coilcontrol_lqr();
@@ -32,7 +32,7 @@ sys = sys.vacuum;
 
 
 
-% evaluate flux and field temporal responses
+% EVALUATE FLUX AND FIELD TEMPORAL RESPONSES
 %  (can use to evaluate response speed for VS, shielding times, etc)
 %  (details on whether to lock other coils, use coil control or voltage...)
 %
@@ -46,7 +46,7 @@ sys = sys.vacuum;
 
 
 
-% evaluate flux and field spatial response
+% EVALUATE FLUX AND FIELD SPATIAL RESPONSE
 %
 % dI = 
 % dI(iy.OH) = 
@@ -54,7 +54,7 @@ sys = sys.vacuum;
 
 
 
-% optimize for flux and field spatial response over a particular area
+% OPTIMIZE FOR FLUX AND FIELD SPATIAL RESPONSE OVER A PARTICULAR AREA
 % 
 % targets = 
 % weights = 
@@ -62,7 +62,7 @@ sys = sys.vacuum;
 
 
 
-% build plasma response models
+% BUILD PLASMA RESPONSE MODELS
 %
 % iplcirc = 1; 
 % Rp = 5e-7;
@@ -70,7 +70,7 @@ sys = sys.vacuum;
 
 
 
-% visualize/familiarize a bit with response model
+% VISUALIZE/FAMILIARIZE A BIT WITH RESPONSE MODEL
 %
 % visualize_eig_vec(sys, 1)
 % visualize_response(sys, 'Br', dI)
@@ -78,7 +78,7 @@ sys = sys.vacuum;
 
 
 
-% vertical control development
+% VERTICAL CONTROL DEVELOPMENT
 %
 % iplcirc = 0;
 % models = response_models(eq, tok, iplcirc, Rp, plasma_model);
@@ -106,7 +106,7 @@ sys = sys.vacuum;
 
 
  
-% radial control development
+% RADIAL CONTROL DEVELOPMENT
 % 
 % vec = 
 % [kp, ki, kd] = zn_tuning(sys ...)
@@ -116,7 +116,7 @@ sys = sys.vacuum;
 
 
 
-% Ip control development
+% IP CONTROL DEVELOPMENT
 % 
 % vec = 
 % [kp, ki, kd] = zn_tuning(sys ...)
@@ -126,19 +126,19 @@ sys = sys.vacuum;
 
 
 
-% Cinv-based shape control development
+% CINV-BASED SHAPE CONTROL DEVELOPMENT
 %
 % cdata = build_cdata(dpsizrdx)
 % Kshape = cmat_inversion(cdata, wts, targets, fds2control ...)
 % control_freq_analysis(sys, Kshape, Kcoil, Kz, Kr, Kip ...)
 % linear_sim(sys, K...)
 %
-% try again with vertical compensation:
+% TRY AGAIN WITH VERTICAL COMPENSATION:
 % cdata = build_cdata(dpsizrdx)
 % u = shapecontrol(y, c.iy, tnow, config)
 % linearsim(@shapecontrol, sys, eq, K ...)
 %
-% find RHP zero direction and penalize it
+% FIND RHP ZERO DIRECTION AND PENALIZE IT
 % rhp_zero_analysis(...)
 % wt = 
 % K = cmat_inversion(wt, ....)
@@ -150,7 +150,7 @@ sys = sys.vacuum;
 
 
 
-% Model Predictive Control 
+% MODEL PREDICTIVE CONTROL 
 %
 % define_lotsa_stuff(...)
 % control_freq_analysis(...)
@@ -159,7 +159,7 @@ sys = sys.vacuum;
 
 
 
-% Nonlinear simulations - lots of examples
+% NONLINEAR SIMULATIONS - LOTS OF EXAMPLES
 
 
 

@@ -27,6 +27,8 @@ tokpath = [d(itok).folder '/' d(itok).name];
 addpath(tokpath)
 addpath([tokpath '/eq'])
 addpath([tokpath '/externaldata'])
+addpath([tokpath '/matlab'])
+addpath([tokpath '/tutorial_codes'])
 
 % clear vars
 clear tokpath d itok n i 
