@@ -199,113 +199,33 @@ sgtitle(sys{i}.plasma_model)
 
 %% STEP 3B: ESTIMATE CONTROL GAINS
 
-dz = 0.03;  % m
-gamma = 70; % Hz
-
-T = 1 / gamma;
-
-br = tok.gbr2c*eq.ic + tok.gbr2v*eq.iv;
-br = reshape(br, tok.nz, tok.nr);
-dr = mean(diff(tok.rg));
-dz = mean(diff(tok.zg));
-[~, dbrdz] = gradient(br, dr, dz);
-
-r = linspace(0.6, 1.2, 10);
-z = linspace(-1, 1, 10);
-[r,z] = meshgrid(r,z);
-
-i = tok.zgg < 1 & tok.zgg > -1 & tok.rgg > 0.6 & tok.rgg < 1.2;
-dbrdz = mean(dbrdz(i));
-
-sys = response_models([], tok, 0, 0, 'vacuum');
-sys = sys{1};
-
-r = 1;
-z = 0;
-Cbr = gridresponse2pt(tok.rg, tok.zg, [tok.gbr2c tok.gbr2v], r, z);
-
-OL = Cbr*ss(sys.amat, sys.bmat, eye(size(sys.amat)), 0);
-[y,t] = step(OL(:,4), T);
-
-plot(t,y)
-dbrdv = y(end);
-
-kp0 = 0.1 * dbrdz / dbrdv / eq.cpasma;
-kd0 = 0.5 * dbrdz * T / dbrdv / eq.cpasma;
+gamma = 70;   % [Hz]
+dt = 1/gamma; % sec
+vec = [0 0 0 1 0 -1 0 0]';
+[kp0, kd0] = estimate_vertical_gains(eq, tok, vec, dt);
 
 
-%%
-close all
+%% STEP 3C: OPTIMIZE CONTROL GAINS AGAINST MULTIPLE MODELS
+
+% perform a gridscan to find stable regions
+delay = 2e-3;   % [sec] time delay for vertical control system
+opt.mag_up = 2;
+opt.mag_lo = -2;
+opt.model_order = 20;
 
 figure
 for i = 1:length(syss)
-  i
-  sys = syss{i};
-  kp0 = 0.002;
-  kd0 = 1.6e-4;
-  vec = [0 0 0 1 0 -1 0 0]';
-
-  [gamma, kps, kds] = vs_gridscan(sys, vec, kp0, kd0);
+  disp(i)
+  vs_gridscan(syss{i}, vec, kp0, kd0, delay, opt);
 end
+scatter(log10(kp0), log10(kd0), 100, 'r', 'filled')
 
-%%
-% REPEAT WITH TIME DELAY
-i = 1;
-sys = syss{i};
-tau = 2e-3;
-[gamma, kps, kds] = vs_gridscan_timedelay(sys, vec, kp0, kd0, tau);
 
-scatter(log10(kp0), log10(kd0), 100,  'k', 'filled')
+% optimization search for 
 
-%%
-% close all
-
-figure
-for i = 1:length(syss)
-  i
-  sys = syss{i};
-  kp0 = 0.002;
-  kd0 = 1.6e-4;
-  vec = [0 0 0 1 0 -1 0 0]';
-  tau = 1e-3;
-  opt.model_order = 20;
-  
-  [gamma, kps, kds] = vs_gridscan_timedelay(sys, vec, kp0, kd0, tau, opt);
-end
-
-scatter(log10(kp0), log10(kd0), 100,  'k', 'filled')
 
 
 %%
-close all
-kp = 0.008;
-kd = .0002;
-
-s = tf('s');
-P = ss(sys.amat, sys.bmat*vec, sys.dzcurdx, 0);
-K = ip*kp + ip*kd*s;
-K = K * exp(-0.003*s);
-
-CL = feedback(P*K, 1);
-max(real(pole(pade(CL,2))))
-
-
-hold on
-step(CL, 0.1)
-
-
-  
-%%
-% 
-% s = struct('rsurf', 0.9, 'aminor', 0.55, 'elong', 1.5, 'c_xplo', 0);
-% [r,z] = shape_create(s, 100);
-% clf; plot_lim(tok); plot(r,z)
-
-
-
-uigrid_plot(tok, x, v)
-
-% eqs_fn = './eq/eqs6565.mat';
 % 
 % 
 % 

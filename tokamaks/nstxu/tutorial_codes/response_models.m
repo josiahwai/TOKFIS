@@ -27,13 +27,17 @@ function models = response_models(eq, tok, iplcirc, Rp, plasma_model)
     plasma_model = {'rzrig', 'gspert', 'gsupdate', 'rig', 'vacuum'};
   end
 
+  N = length(plasma_model);
+  models = cell(N,1);
 
-  for i = 1:length(plasma_model)
+  for i = 1:N
     x = plasma_model{i};  
     % try
       fprintf('building %s sys\n', x);
       fun = str2func(['build_' x '_sys']); 
-      models.(x) = fun(eq, tok, iplcirc, Rp);
+      models{i} = fun(eq, tok, iplcirc, Rp);
+      models{i}.eq = eq;
+      models{i}.plasma_model = x;      
     % catch
     % warning(['Could not run ' x ])
     % end  
@@ -127,13 +131,22 @@ function sys = build_gsupdate_sys(eq, tok, iplcirc, Rp)
   [d,~,r] = gsupdate(eq.x, eq, c, 1);
   sys = struct;
 
+  dvdx = [eye(c.nic+c.niv, c.nic+c.niv+3); r.dcpasmadx; r.dlidx; r.dbetapdx];
+  dxdv = inv(dvdx); 
+  dpcurrtdx = r.dpcurrtdx * dxdv;
+  dpcurrtdx(:,end-2:end) = [];
+
+  X = [tok.mpc tok.mpv]' * dpcurrtdx;
+  M = [tok.mcc tok.mcv; tok.mcv' tok.mvv];
+  R = diag([tok.resc; tok.resv]);
+  lstar = M+X;
+  lstari = inv(M+X);
+  amat = -lstari * R;
+  bmat = lstari(:,1:tok.nc);
+
+  
   % plasma current evolution from gsupdate is weird due to the usage of 
   % sf and sp coefficients as the states, lets put in something more reasonable:
-  nx = size(d.A, 1);
-  i = 1:(nx-3);
-  amat = d.A(i,i);
-  bmat = d.B(i,:);
-  R = c.Rhat(i,i);
   
   if iplcirc
     lstari = -amat * inv(R);

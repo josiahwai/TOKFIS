@@ -15,9 +15,11 @@ V = V(:,i);
 % index a specific eigenvalue
 val = d(k);
 vec = V(:,k);
+ic = vec(1:tok.nc);
+iv = vec(tok.nc+1:tok.nc+tok.nv);
 
 % compute plasma coupling
-dpsipladx = [tok.mpc tok.mpv] * vec(1:end-1);
+dpsipladx = tok.mpc*ic + tok.mpv*iv;
 dpsipladx = reshape(dpsipladx, tok.nz, tok.nr);
 
 
@@ -26,10 +28,10 @@ figure
 
 subplot(2,2,1)
 labels = categorical(tok.ccnames);
-bar(labels, vec(1:tok.nc))
+bar(labels, ic)
 
 subplot(2,2,3)
-bar(vec)
+bar(iv)
 xlabel('Vessel element')
 
 subplot(2,2,[2 4])
