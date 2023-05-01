@@ -2,7 +2,6 @@
 function [gamma, kps, kds] = vs_gridscan(sys, vec, kp0, kd0, tau, opt)
 
 
-
 % set default options
 default.nkp = 15;
 default.nkd = 15;
@@ -25,7 +24,6 @@ gamma = nan(opt.nkd, opt.nkp);
 A = sys.amat;
 Bz = sys.bmat * vec;
 Cz = sys.dzcurdx;
-I = eye(size(A));
 ip = sys.eq.cpasma;
 s = tf('s');
 P = ss(A, Bz, Cz*ip, 0);   % open loop plant

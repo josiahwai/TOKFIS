@@ -43,6 +43,10 @@ function models = response_models(eq, tok, iplcirc, Rp, plasma_model)
     % end  
   end
 
+  if N == 1
+    models = models{1};
+  end
+
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

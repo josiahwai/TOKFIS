@@ -1,6 +1,6 @@
 function out = run_coilsim(G, K, vmax, vmin, tmax, ref)
 
-simIn = Simulink.SimulationInput('coilsim');
+simIn = Simulink.SimulationInput('coilsim_slx');
 
 G = ss(G);
 K = ss(K);

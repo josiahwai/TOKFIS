@@ -1,10 +1,11 @@
+
 % Estimate vertical control gains for vertical proportional derivative controller
 %
 % Method: correlate dBr/dz and dBr/dt
 %
 %
 
-function [kp, kd] = estimate_vertical_gains(eq, tok, vec, dt)
+function [kp, kd] = estimate_radial_gains(eq, tok, vec, dt)
 
 
 % calculate equilibrium dBr/dz on grid

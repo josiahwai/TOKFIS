@@ -5,7 +5,8 @@ clear all; clc; close all
 %% STEP 1: INITIAL SCOPING
 
 % preliminaries: tokamak geometry and power supply info
-tok_fn = 'nstxu_obj_2016_GSgrid33x33_npp4x4.mat';
+% tok_fn = 'nstxu_obj_2016_GSgrid33x33_npp4x4.mat';
+tok_fn = 'nstxu_obj_config2016_6565.mat';
 utok = load(tok_fn).tok_data_struct;
 circ = nstxu_circ();              % defines power supply limits and circuit connections
 tok  = connect_tok(utok, circ);   % connect coils to circuits
@@ -13,7 +14,7 @@ tok  = connect_tok(utok, circ);   % connect coils to circuits
 
 
 %% STEP 1A: BUILD THE VACUUM MODEL
-sys = response_models([], tok, 0, 0, 'vacuum').vacuum;
+vacsys = response_models([], tok, 0, 0, 'vacuum');
 
 
 
@@ -23,14 +24,14 @@ sys = response_models([], tok, 0, 0, 'vacuum').vacuum;
 % (pid, lqr, lqi) and then test it using cc_analysis.m
 
 Kpid = nstxu_coilcontrol_pid(tok);  
-Klqr = nstxu_coilcontrol_lqr(tok, sys);
-Klqi = nstxu_coilcontrol_lqi(tok, sys);
+Klqr = nstxu_coilcontrol_lqr(tok, vacsys);
+Klqi = nstxu_coilcontrol_lqi(tok, vacsys);
 
 K = Kpid;
 stepsize = 1e3;
 tmax = 0.2;
 coils2plot = {'OH', 'PF5'};  
-cc_analysis(K, sys, tok, stepsize, tmax, coils2plot, circ) 
+cc_analysis(K, vacsys, tok, stepsize, tmax, coils2plot, circ) 
 
 
 %% STEP 1C: EVALUATE FLUX AND FIELD TEMPORAL RESPONSES
@@ -52,27 +53,27 @@ plotit = 1;
 coils = tok.ccnames; 
 
 t = linspace(0, 0.005, 100);
-[~, figh] = vac_step_response(sys, K, Cbr, tok, circ, stepsize, t, coils, plotit);
+[~, figh] = vac_step_response(vacsys, K, Cbr, tok, circ, stepsize, t, coils, plotit);
 tabfun(figh, @ylabel, 'Br [Gs/kA]', 'fontsize', 16)
 
 
-[~, figh] = vac_step_response(sys, K, Cbz, tok, circ, stepsize, t, coils, plotit);
+[~, figh] = vac_step_response(vacsys, K, Cbz, tok, circ, stepsize, t, coils, plotit);
 tabfun(figh, @ylabel, 'Bz [Gs/kA]', 'fontsize', 16)
 
 
 stepsize = 1e6;
 t = linspace(0, 0.3, 200);
-[~, figh] = vac_step_response(sys, K, Cpsi, tok, circ, stepsize, t, coils, plotit);
+[~, figh] = vac_step_response(vacsys, K, Cpsi, tok, circ, stepsize, t, coils, plotit);
 tabfun(figh, @ylabel, 'Flux [mWb/kA]', 'fontsize', 16)
 
 
 stepsize = 1e3;
 t = linspace(0, 0.3, 200);
-[~, figh] = vac_step_response(sys, K, Cvessel, tok, circ, stepsize, t, coils, plotit);
+[~, figh] = vac_step_response(vacsys, K, Cvessel, tok, circ, stepsize, t, coils, plotit);
 tabfun(figh, @ylabel, 'Vessel currents [A]', 'fontsize', 16)
 
 
-T = Cbr*ss(sys.amat, sys.bmat, eye(size(sys.amat)), 0);
+T = Cbr*ss(vacsys.amat, vacsys.bmat, eye(size(vacsys.amat)), 0);
 [y,t] = step(T(:,2), 0.005);
 plot(t,y)
 
@@ -92,47 +93,35 @@ plot_response(tok, vec)
 vec = [1 0 0 0 0 0 0 0]';
 plot_response(tok, vec);
 
-figure
-bar(categorical(tok.ccnames), normc(vec))
 
 %% STEP 1E: ESTIMATE OPTIMAL CONTROL DIRECTIONS
-
 
 % Br optimization for vertical
 r = linspace(0.6, 1.4, 10);
 z = ones(size(r)) * 0.8;
 r = [r r]';
 z = [z -z]';
-
 targ     = struct;
 targ.r   = r;
 targ.z   = z;
 targ.br  = ones(size(r)) * 1e-7;
-
 wt       = struct;
 wt.br    = ones(size(r)) * 1;
-
 vec = optimize_vec(tok, targ, wt);
-
 plot_response(tok, normc(vec))
-
 
 
 % Bz optimization for radial
 z = linspace(-1,1,20)';
 r = ones(size(z)) * 1.1;
-
 targ     = struct;
 targ.r   = r;
 targ.z   = z;
 targ.bz  = ones(size(r)) * 1e-7;
-
 wt       = struct;
 wt.bz    = ones(size(r)) * 1;
-
 vec = optimize_vec(tok, targ, wt);
 plot_response(tok, normc(vec))
-
 
 
 % Flux optimization for Ip
@@ -141,20 +130,16 @@ z = linspace(-1, 1, 10);
 [r,z] = meshgrid(r,z);
 r = r(:);
 z = z(:);
-
 targ      = struct;
 targ.r    = r;
 targ.z    = z;
 targ.psi  = ones(size(r)) * 1e-6;
-
 wt       = struct;
 wt.psi   = ones(size(r)) * 1;
 wt.ic    = [1 1 1 1 10 1 1 1]';
-
 vec = optimize_vec(tok, targ, wt);
-
-
 plot_response(tok, normc(vec))
+
 
 figure
 bar(categorical(tok.ccnames), normc(vec))
@@ -175,30 +160,34 @@ iplcirc = 1;
 Rp = 5e-7;
 plasma_model = {'gspert', 'rzrig', 'rig'};
 
-sys = {};
+models = {};
 for i = 1:length(eqs)
-  sys(:,end+1) = response_models(eqs{i}, tok, iplcirc, Rp, plasma_model);
+  models(:,end+1) = response_models(eqs{i}, tok, iplcirc, Rp, plasma_model);
 end
+models = models(:);
 
 
 
 %% STEP 3A: ANALYZE VERTICAL INSTABILITY
 
-sys = sys(:);
-[iuse, gamma] = sys_eig_check(sys, 300);
-sys = sys(iuse);
+gamma_max = 300;
+gamma_min = -inf;
+[iuse, gamma] = sys_eig_check(models, gamma_max, gamma_min);
+models = models(iuse);
+nmodels = length(models);
 
 i = 3*4+1;
-visualize_eig_vec(sys{i}.amat, sys{i}.eq, tok, 1)
-sgtitle(sys{i}.plasma_model)
+visualize_eig_vec(models{i}.amat, models{i}.eq, tok, 1)
+sgtitle(models{i}.plasma_model)
 
 i = i+1;
-visualize_eig_vec(sys{i}.amat, sys{i}.eq, tok, 1)
-sgtitle(sys{i}.plasma_model)
+visualize_eig_vec(models{i}.amat, models{i}.eq, tok, 1)
+sgtitle(models{i}.plasma_model)
 
 
 %% STEP 3B: ESTIMATE CONTROL GAINS
 
+eq = eqs{4};
 gamma = 70;   % [Hz]
 dt = 1/gamma; % sec
 vec = [0 0 0 1 0 -1 0 0]';
@@ -208,22 +197,64 @@ vec = [0 0 0 1 0 -1 0 0]';
 %% STEP 3C: OPTIMIZE CONTROL GAINS AGAINST MULTIPLE MODELS
 
 % perform a gridscan to find stable regions
-delay = 2e-3;   % [sec] time delay for vertical control system
-opt.mag_up = 2;
-opt.mag_lo = -2;
-opt.model_order = 20;
-
+delay = 1e-4;          % [sec] time delay for vertical control system
+opt.mag_up = 2;        % upper grid scan limit (order of magnitude)
+opt.mag_lo = -2;       % lower grid scan limit (order of magnitude)
+opt.model_order = 20;  % how much to compress model 
 figure
-for i = 1:length(syss)
+for i = 1:nmodels
   disp(i)
-  vs_gridscan(syss{i}, vec, kp0, kd0, delay, opt);
+  vs_gridscan(models{i}, vec, kp0, kd0, delay, opt);
 end
 scatter(log10(kp0), log10(kd0), 100, 'r', 'filled')
 
+%%
+test_vs_optimization2
 
-% optimization search for 
+
+%%
+i = 4;
+
+sys = models{4};
+eq = sys.eq;
+
+mpp = unwrap_mpp(tok.mpp, tok.nz, tok.nr);
+dpsizrdx = mpp * sys.dpcurrtdx + [tok.mpc tok.mpv zeros(tok.nz*tok.nr,1)];
+
+[ro,i] = max(eq.rbbbs);
+zo = eq.zbbbs(i); 
+dpsioutdx = gridresponse2pt(tok.rg, tok.zg, dpsizrdx, ro, zo);
+dpsibrydx = gridresponse2pt(tok.rg, tok.zg, dpsizrdx, eq.rbdef, eq.zbdef);
+
+Cr = dpsioutdx - dpsibrydx;
+
+[~,psi_r] = bicubicHermite(tok.rg, tok.zg, eq.psizr, ro, zo);
 
 
+[kp0, ki0] = estimate_radial_gains(eq, tok, vec, dt);
+
+
+%%
+
+
+
+
+
+
+
+%%
+% optimization search for controller parameters
+
+
+% choose multiple plants
+% make tunable pid controller
+% systune or hinfstruct ? 
+
+
+% %%
+
+
+%%
 
 %%
 % 
