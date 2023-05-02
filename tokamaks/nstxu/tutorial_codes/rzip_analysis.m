@@ -1,34 +1,18 @@
-clc; close all
+function rzip_analysis(models, Kr, Kz, Kip, delay, tok, opt)
 
-rstep = 0.01;
-zstep = 0.01;
-ipstep = 1e4;
-t = linspace(0, 0.3, 500);
+% set defaults
+default.rstep = 0.01;
+default.zstep = 0.01;
+default.ipstep = 1e4;
+default.t = linspace(0, 0.3, 500);
+if ~exist('opt','var'), opt = struct; end
+opt = copyfields(default, opt, [], 1);
 
 
+
+% close loops with RZIP controllers
 s = tf('s');
-
-kp = 8e-3;
-ki = 1e-2;
-kd = 1e-4;
-vec = [0 0 0 0 1 0 0 0]';
-Kr = vec * (kp + ki/s + kd*s);
-
-kp = -0.1;
-ki = -0.4;
-kd = 0;
-vec = [1 0 0 0 0 0 0 0]';
-Kip = vec * (kp + ki/s + kd*s); 
-
-kp = 0.0021;
-ki = 0;
-kd = 1.2e-4;
-vec = [0 0.4 0.4 0.8 0 -0.8 -0.4 -0.4]';
-Kz = vec * (kp + ki/s + kd*s); 
-
-delay = 1e-4;
 ssdelay = pade(exp(-delay*s), 4);
-
 P = {};
 ip = {};
 Pcl = {};
@@ -58,7 +42,7 @@ end
 
 
 %% Everything below is plotting
-clc; close all
+t = opt.t;
 
 co = mat2cell(colororder, ones(7,1), 3);   % helps with defining colors
 
@@ -67,8 +51,8 @@ labels = {'Rcur', 'Zcur', 'Ip'};
 y = [];
 x = [];
 
-for i = 1:length(models)
-  stepsize = [rstep zstep ipstep];
+for i = 1:length(models)  
+  stepsize = [opt.rstep opt.zstep opt.ipstep];
   y(i,:,:,:) = step(Pcl{i} * diag(stepsize), t);
   x(i,:,:,:) = step(Gcl{i} * diag(stepsize), t);
 end

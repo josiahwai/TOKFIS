@@ -244,39 +244,65 @@ vec = [0 0.4 0.4 0.8 0 -0.8 -0.4 -0.4]';
 Kz2 = vec * (kp0 + kd0*s);
 vs_analysis(models(iuse), Kz2, delay, tok, opt);
 
-%% STEP 4A: 
+%% STEP 4A: DESIGN RADIAL AND IP CONTROLLERS
+
+% estimate radial gain
+T = 0.05;
+vec = [0 0 0 0 1 0 0 0]';
+Rp = 5e-7;
+iplcirc = 1;
+vacsys = response_models(eq, tok, iplcirc, Rp, 'vacuum');
+P = ss(vacsys.amat, vacsys.bmat, sys.drcurdx, 0);
+y = step(P*vec, T);
+kp = 5 ./ y(end) / eq.cpasma;
+disp(kp)
+
+% estimate Ip gain
+vec = [1 0 0 0 0 0 0 0]';
+Cip = [zeros(1,tok.nc+tok.nv) 1];
+P = ss(vacsys.amat, vacsys.bmat, Cip, 0);
+y = step(P*vec, T);
+kp = 5 ./ y(end);
+disp(kp)
+
+
+%% STEP 4B/4C: ANALYZE LINEAR SYTEM PERFORMANCE
 
 iuse = [2:7 14:20];
-models = models0(iuse);
+
+opt.rstep = 0.01;
+opt.zstep = 0.01;
+opt.ipstep = 1e4;
+opt.t = linspace(0, 0.3, 500);
+delay = 1e-4;
+
+s = tf('s');
+
+kp = 8e-3;
+ki = 1e-2;
+kd = 1e-4;
+vec = [0 0 0 0 1 0 0 0]';
+Kr = vec * (kp + ki/s + kd*s);
+
+kp = -0.1;
+ki = -0.4;
+kd = 0;
+vec = [1 0 0 0 0 0 0 0]';
+Kip = vec * (kp + ki/s + kd*s); 
+
+kp = 0.0021;
+ki = 0;
+kd = 1.2e-4;
+vec = [0 0.4 0.4 0.8 0 -0.8 -0.4 -0.4]';
+Kz = vec * (kp + ki/s + kd*s); 
+
+rzip_analysis(models(iuse), Kr, Kz, Kip, delay, tok, opt)
 
 
-% clc; close all
-% 
-% Rp = 5e-7;
-% iplcirc = 1;
-% vacsys = response_models(eq, tok, iplcirc, Rp, 'vacuum');
-% 
-% vec = [0 0 0 0 1 0 0 0]';  % vector representation of +PF5
-% T = ss(vacsys.amat, vacsys.bmat, sys.drcurdx, 0);
-% 
-% [y,t] = step(T*vec, 0.05);
-% plot(t,y)
-% 
-% kp = 1 ./ y(end) / eq.cpasma
-% ki = kp * 4 
-% 
-% %%
-% clc; close all
-% 
-% vec = [1 0 0 0 0 0 0 0]';
-% Cip = [zeros(1,tok.nc+tok.nv) 1];
-% T = ss(vacsys.amat, vacsys.bmat, Cip, 0);
-% [y,t] = step(T*vec, 0.05);
-% plot(t,y)
-% 
-% kp = 1./ y(end)
-% ki = kp * 4
+%% STEP 4C: ANALYZE LINEAR SYSTEM PERFORMANCE
 
+
+linearsim_rzip
 
 
 
