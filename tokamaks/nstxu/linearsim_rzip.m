@@ -12,9 +12,7 @@
 %   simset.max_step_size
 %   simset.stop_time
 
-clc; close all;
-i = 2;
-sys = models{i};      
+function out = linearsim_rzip(sys, tok, circ)
 
 [nx,nu] = size(sys.bmat);
 ny = 3;
