@@ -24,8 +24,6 @@ simset.stop_time = 0.3;
 controlfun_name = 'zcontroller';
 
 
-
-
 CONFIG = struct;
 
 % pass the name of the controlfun, encoded as unicode vector

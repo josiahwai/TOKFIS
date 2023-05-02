@@ -6,6 +6,7 @@ idx2plot = ccnames2idx(coils2plot, tok);
 % make figure
 fig = figure;
 fig.Position = [523 109 805 851];
+co = mat2cell(colororder, ones(7,1), 3);   % helps with defining colors
 
 
 % plot all coils and voltages
@@ -29,10 +30,12 @@ for i = 1:tok.nc
 end
 
 
-co = mat2cell(colororder, ones(7,1), 3);
 
+% plot responses of individual coils
 for i = idx2plot(:)'
 
+
+  % define tabs and panels to organize figure
   tab = uitab();  
   axes('Parent', tab, 'Visible', 'off') 
   s = sgtitle([tok.ccnames{i} ' Current Response'], 'fontweight', 'bold');

@@ -190,7 +190,7 @@ sgtitle(models{i}.plasma_model)
 eq = eqs{4};
 gamma = 70;   % [Hz]
 dt = 1/gamma; % sec
-vec = [0 0 0 1 0 -1 0 0]';
+vec = [0 0 0 1 0 -1 0 0]';  % vector direction for control (+PF3U, -PF3L)
 [kp0, kd0] = estimate_vertical_gains(eq, tok, vec, dt);
 
 
@@ -202,36 +202,83 @@ opt.mag_up = 2;        % upper grid scan limit (order of magnitude)
 opt.mag_lo = -2;       % lower grid scan limit (order of magnitude)
 opt.model_order = 20;  % how much to compress model 
 figure
+scatter(log10(kp0), log10(kd0), 100, 'r', 'filled')   % the initial controller estimate
 for i = 1:nmodels
   disp(i)
-  vs_gridscan(models{i}, vec, kp0, kd0, delay, opt);
+  vs_gridscan(models{i}, vec, kp0, kd0, delay, opt);  % find stable regions
 end
-scatter(log10(kp0), log10(kd0), 100, 'r', 'filled')
 
-%%
-test_vs_optimization2
-
-
-%%
-i = 4;
-
-sys = models{4};
-eq = sys.eq;
-
-mpp = unwrap_mpp(tok.mpp, tok.nz, tok.nr);
-dpsizrdx = mpp * sys.dpcurrtdx + [tok.mpc tok.mpv zeros(tok.nz*tok.nr,1)];
-
-[ro,i] = max(eq.rbbbs);
-zo = eq.zbbbs(i); 
-dpsioutdx = gridresponse2pt(tok.rg, tok.zg, dpsizrdx, ro, zo);
-dpsibrydx = gridresponse2pt(tok.rg, tok.zg, dpsizrdx, eq.rbdef, eq.zbdef);
-
-Cr = dpsioutdx - dpsibrydx;
-
-[~,psi_r] = bicubicHermite(tok.rg, tok.zg, eq.psizr, ro, zo);
+% This script is a demo on how to design a controller using systune (which
+% uses H-infinity optimization under the hood)
+iuse = [4 14 15 25];
+[Kz, K] = vs_optimization(models(iuse));
 
 
-[kp0, ki0] = estimate_radial_gains(eq, tok, vec, dt);
+%% STEP 3D: ADD VERTICAL CURRENT COMPENSATION
+% Not necessary for NSTX-U, see this of analysis for kstar/sparc
+
+
+%% STEP 3E: ANALYZE AND TUNE LINEAR SYSTEM PERFORMANCE
+
+iuse = [1:9 13:27];
+delay = 1e-4;
+opt = struct;
+opt.reduce_model = 0;
+opt.model_order  = 20;   
+opt.stepsize = 0.01;
+opt.t = linspace(0, 0.3, 500);
+
+% analyze the controller made by systune in previous step
+vs_analysis(models(iuse), Kz, delay, tok, opt);
+
+
+% analyze this controller
+s = tf('s');
+vec = [0 0 0 1 0 -1 0 0]';
+Kz1 = vec * (kp0 + kd0*s);
+vs_analysis(models(iuse), Kz1, delay, tok, opt);
+
+
+% analyze this controller
+vec = [0 0.4 0.4 0.8 0 -0.8 -0.4 -0.4]';
+Kz2 = vec * (kp0 + kd0*s);
+vs_analysis(models(iuse), Kz2, delay, tok, opt);
+
+%% STEP 4A: 
+
+iuse = [2:7 14:20];
+models = models0(iuse);
+
+
+% clc; close all
+% 
+% Rp = 5e-7;
+% iplcirc = 1;
+% vacsys = response_models(eq, tok, iplcirc, Rp, 'vacuum');
+% 
+% vec = [0 0 0 0 1 0 0 0]';  % vector representation of +PF5
+% T = ss(vacsys.amat, vacsys.bmat, sys.drcurdx, 0);
+% 
+% [y,t] = step(T*vec, 0.05);
+% plot(t,y)
+% 
+% kp = 1 ./ y(end) / eq.cpasma
+% ki = kp * 4 
+% 
+% %%
+% clc; close all
+% 
+% vec = [1 0 0 0 0 0 0 0]';
+% Cip = [zeros(1,tok.nc+tok.nv) 1];
+% T = ss(vacsys.amat, vacsys.bmat, Cip, 0);
+% [y,t] = step(T*vec, 0.05);
+% plot(t,y)
+% 
+% kp = 1./ y(end)
+% ki = kp * 4
+
+
+
 
 
 %%

@@ -42,9 +42,9 @@ dbrdv = y(end);  % how much br has changed due to applied voltage after dt
 
 % estimate the control gains
 
-a = 0.2;   % assume 0.2 contribution from proportional, 0.8 from derivative
+a = 0.5;   % assume a contribution from proportional, (1-a) from integral
 kp = a * dbrdz / dbrdv / eq.cpasma;
-kd = (1-a) * dbrdz * dt / dbrdv / eq.cpasma;
+ki = (1-a) * dbrdz * dt / dbrdv / eq.cpasma;
 
 
 
