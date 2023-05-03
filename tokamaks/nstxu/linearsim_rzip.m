@@ -12,7 +12,7 @@
 %   simset.max_step_size
 %   simset.stop_time
 
-% function out = linearsim_rzip(sys, tok, circ)
+function out = linearsim_rzip(sys, tok, circ)
 
 [nx,nu] = size(sys.bmat);
 ny = 3;
@@ -49,8 +49,8 @@ CONFIG.r = r;
 
 
 % run model
-% out = run_slx_model('linearsim_slx', r, sys, PS, x0, y0, dydx, CONFIG, simset);
-out = sim('linearsim_slx', simset.stop_time);
+out = run_slx_model('linearsim_slx', sys, PS, x0, y0, dydx, CONFIG, simset);
+% out = sim('linearsim_slx', simset.stop_time);
 
 
 % plot outputs

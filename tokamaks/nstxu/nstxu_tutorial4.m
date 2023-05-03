@@ -246,6 +246,8 @@ vs_analysis(models(iuse), Kz2, delay, tok, opt);
 
 %% STEP 4A: DESIGN RADIAL AND IP CONTROLLERS
 
+sys = models{4};
+
 % estimate radial gain
 T = 0.05;
 vec = [0 0 0 0 1 0 0 0]';
@@ -266,13 +268,13 @@ kp = 5 ./ y(end);
 disp(kp)
 
 
-%% STEP 4B/4C: ANALYZE LINEAR SYTEM PERFORMANCE
+%% STEP 4B/4C: ANALYZE LINEAR SYSTEM PERFORMANCE
 
 iuse = [2:7 14:20];
 
-opt.rstep = 0.01;
-opt.zstep = 0.01;
-opt.ipstep = 1e4;
+opt.rstep = 0.01;  % [m]
+opt.zstep = 0.01;  % [m]
+opt.ipstep = 1e4;  % [A]
 opt.t = linspace(0, 0.3, 500);
 delay = 1e-4;
 
@@ -299,11 +301,12 @@ Kz = vec * (kp + ki/s + kd*s);
 rzip_analysis(models(iuse), Kr, Kz, Kip, delay, tok, opt)
 
 
-%% STEP 4C: ANALYZE LINEAR SYSTEM PERFORMANCE
-clc; close all
-
+%% STEP 4C: ANALYZE LINEAR SYSTEM PERFORMANCE WITH SIMULINK
 sys = models{2};
 linearsim_rzip(sys, tok, circ)
+
+
+
 
 %% STEP 6: C-INVERSE LINEAR SHAPE CONTROL
 
