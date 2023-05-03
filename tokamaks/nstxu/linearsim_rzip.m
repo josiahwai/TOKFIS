@@ -45,7 +45,7 @@ CONFIG.nu = 8;
 
 
 % run model
-out = run_slx_model('linearsim_slx', sys, PS, x0, y0, dydx, CONFIG, simset);
+out = run_slx_model('linearsim_slx', r, sys, PS, x0, y0, dydx, CONFIG, simset);
 out.y.Data = squeeze(out.y.Data)';
 
 

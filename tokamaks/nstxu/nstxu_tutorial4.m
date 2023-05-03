@@ -307,7 +307,8 @@ linearsim_rzip(sys, tok, circ)
 
 %% STEP 6: C-INVERSE LINEAR SHAPE CONTROL
 
-
+clearvars -except models circ tok
+ 
 
 
 
