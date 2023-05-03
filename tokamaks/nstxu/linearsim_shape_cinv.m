@@ -1,7 +1,7 @@
 clear; clc; close all
 
 load('x')
-i = 4;
+i = 2;
 sys = models{i};
 eq = sys.eq;
 
@@ -50,7 +50,8 @@ cdata = build_cdata(dpsizrdx, tok, eqx);
 cdata.rcur = sys.drcurdx;
 cdata.zcur = sys.dzcurdx;
 
-yfds = {'rcur', 'zcur', 'cpasma', 'ic', 'psizr'};
+% yfds = {'rcur', 'zcur', 'cpasma', 'ic', 'psizr', 'psibry'};
+yfds = {'rcur', 'zcur', 'cpasma', 'ic', 'psibry'};
 iy = get_struct_indices(cdata, yfds);
 dydx = struct2vec(cdata, yfds);
 
@@ -59,13 +60,9 @@ ny = size(dydx,1);
 
 x0 = [eq.ic; eq.iv; eq.cpasma];
 
-y0       = struct;
-y0.ic    = eq.ic;
-y0.rcur  = eq.rcur;
-y0.zcur  = eq.zcur;
-y0.cpasma    = eq.cpasma;
-y0.psizr = eq.psizr(:);
-y0       = struct2vec(y0, yfds);
+y0 = eq;
+y0.psizr = y0.psizr(:);
+y0 = struct2vec(y0, yfds);
 
 PS.vmax = circ.vmax * inf;
 PS.vmin = circ.vmin * inf;
@@ -74,7 +71,14 @@ PS.delay = 1e-4;
 simset.max_step_size = 1e-3;
 simset.stop_time = 0.3;
 
+
 controlfun_name = 'shape_cinv_controller';
+
+t = linspace(0, 0.3, 100)';
+r = struct;
+r.Time = t;
+r.Data = ones(length(t),1) * y0';
+r.Data(t>0.1, 1) = 0.9;
 
 
 CONFIG = struct;
@@ -82,18 +86,11 @@ CONFIG.controlfun_unicode = double(controlfun_name); % pass the name of the cont
 CONFIG.ip = sys.eq.cpasma;
 CONFIG.iy = iy;
 CONFIG.nu = 8;
-CONFIG.targ = targ;
-CONFIG.dpsizrdx = tok.mpc;
-
-
-
-%%
-t = linspace(0, 0.3, 100)';
-r = struct;
-r.Time = t;
-r.Data = ones(length(t),1) * y0';
-r.Data(t>0.1, 1) = 0.9;
+% CONFIG.targ = targ;
+% CONFIG.dpsizrdx = tok.mpc;
+% CONFIG.tok = tok;
 CONFIG.r = r;
+CONFIG = purge_struct(purge_struct(CONFIG));
 
 
 %%
@@ -120,7 +117,7 @@ fig = plot_structts(ts, fds2plot, 3);
 fig.Position = [505 191 1069 709];
 
 
-fig = summary_soln_plot(out.y, iy, tok);
+% fig = summary_soln_plot(out.y, iy, tok);
 
 
 

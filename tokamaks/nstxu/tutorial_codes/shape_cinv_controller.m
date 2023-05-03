@@ -16,7 +16,9 @@ rdot = (rnext - r)/dt;
 e = r-data;                % errors
 ei = ei + e*(tnow-tprev);  % integral of errors
 edot = rdot - datadot;
+
 u = zeros(8,1);
+
 ip = CONFIG.ip;
 iy = CONFIG.iy;
 
@@ -49,15 +51,17 @@ c = 0.5;
 tmp = kp*e(iy.cpasma) + ki*ei(iy.cpasma) + kd * (c*rdot(iy.cpasma) - datadot(iy.cpasma));
 u = u + vec * tmp;
 
+
 tprev = tnow;
 
 
 
 % % SHAPE CONTROL
-% fds = {'psixlo', 'diff_psicp_psixlo', 'psixtarglo_r','psixtarglo_z'};
-% 
+% fds = {'psixlo', 'diff_psicp_psixlo', 'psixtarglo_r', 'psixtarglo_z'};
 % targ = CONFIG.targ;
 % 
+% y = measure_y(data, iy, targ);
+
 % cdata = build_cdata(tok.mpc, tok, targ);
 % C = struct2vec(cdata, fds);
 % 
@@ -268,10 +272,6 @@ tprev = tnow;
 % 
 % 
 % 
-
-
-
-
 
 
 
