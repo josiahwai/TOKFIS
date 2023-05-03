@@ -23,9 +23,9 @@ Tvi = Tvi(:,iuse);
 Tx = blkdiag(eye(tok.nc), Tv);
 Txi = blkdiag(eye(tok.nc), Tvi); 
 
-if size(Tx,1) == nx-1    % plasma current is included in states
+if size(Tx,2) == nx-1    % plasma current is included in states
   Tx = blkdiag(Tx,1);
-  Txi = blkdiat(Txi,1);
+  Txi = blkdiag(Txi,1);
 end
 
 

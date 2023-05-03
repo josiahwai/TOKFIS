@@ -1,12 +1,24 @@
 
 function y = measure_y(data, iy, targ, tok)
 
+
+% initialize defaults
+defaultvars = {'rxlo', 'zxlo', 'rxup', 'zxup', 'rxtarglo', ...
+  'zxtarglo', 'rxtargup', 'zxtargup', 'rcp', 'zcp', 'rbdef', 'zbdef', ...
+  'rtouch', 'ztouch', 'rtargtouch', 'ztargtouch'};
+default = struct;
+for x = defaultvars
+  default.(x{:}) = nan;
+end
+targ = copyfields(default, targ, [], 1);
+
+% 
 psizr = reshape(data(iy.psizr), tok.nz, tok.nr);
+
 
 % currents
 y.ip = data(iy.cpasma);
 y.ic = data(iy.ic);
-
 
 % flux at control points
 rcp = min(max(targ.rcp,tok.rg(3)), tok.rg(end-2));

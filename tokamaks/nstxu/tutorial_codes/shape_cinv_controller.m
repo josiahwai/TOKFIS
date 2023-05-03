@@ -1,9 +1,18 @@
 
 function u = shape_cinv_controller(data, datadot, tnow, CONFIG)
 
-persistent ei tprev
-if isempty(ei), ei = data*0; end
-if isempty(tprev), tprev = tnow; end
+% data = data(1:3);
+% datadot = datadot(1:3);
+
+persistent ei tprev dxi ushape tlastupdate
+if isempty(ei)
+  ei = data*0; 
+  dxi = zeros(8,1); 
+  tprev = tnow; 
+  ushape = zeros(8,1);
+  tlastupdate = tnow;
+end
+
 
 dt = 1e-4;
 r = interp1(CONFIG.r.Time, CONFIG.r.Data, tnow, 'linear', 'extrap');
@@ -52,20 +61,50 @@ tmp = kp*e(iy.cpasma) + ki*ei(iy.cpasma) + kd * (c*rdot(iy.cpasma) - datadot(iy.
 u = u + vec * tmp;
 
 
+% SHAPE CONTROL
+dt = 0.001;
+update = tnow>=0.003 && (tnow-tlastupdate) > dt;
+
+if update
+
+  tlastupdate = tnow;
+
+  fds = {'psixlo', 'diff_psicp_psixlo', 'psixtarglo_r', 'psixtarglo_z'};
+  targ = CONFIG.targ;
+  
+  ydata = measure_y(data, iy, targ, CONFIG.tok);
+  cdata = build_cdata(CONFIG.dpsizrdx, CONFIG.tok, targ);
+  C = struct2vec(cdata, fds);
+  y = struct2vec(ydata, fds);
+  yr = struct2vec(targ, fds);
+  
+  e = yr - y;
+
+  wy.psixlo            = 0;
+  wy.diff_psicp_psixlo = ones(length(targ.rcp),1) * 3e10;
+  wy.psixtarglo_r      = 6e9;
+  wy.psixtarglo_z      = 6e9;
+  
+  Wy = diag(struct2vec(wy,fds));
+  Wx = diag([1e3 1 1 1 1 1 1 1]);
+
+  H = C'*Wy*C + Wx;
+  f = -C'*Wy*e;
+  dx = -H\f;
+
+  kp = [4.3886    0.2447    0.2373    0.6230    1.4965    0.6230    0.2373    0.2447]';
+  ki = [87.7717    4.8936    4.7461   12.4610   29.9297   12.4610    4.7461    4.8936]';
+
+  dxi = dxi + dx*(tnow-tprev);
+  ushape = kp.*dx + ki.*dxi;
+
+end
+u = u + ushape;
+
 tprev = tnow;
 
 
-
-% % SHAPE CONTROL
-% fds = {'psixlo', 'diff_psicp_psixlo', 'psixtarglo_r', 'psixtarglo_z'};
-% targ = CONFIG.targ;
-% 
-% y = measure_y(data, iy, targ);
-
-% cdata = build_cdata(tok.mpc, tok, targ);
-% C = struct2vec(cdata, fds);
-% 
-
+%%
 % eq = = measure_y(y, targ, CONFIG);
 % 
 % 
