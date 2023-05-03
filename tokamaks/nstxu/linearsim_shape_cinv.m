@@ -86,12 +86,14 @@ CONFIG.targ = targ;
 CONFIG.dpsizrdx = tok.mpc;
 
 
+
 %%
-t = linspace(0, 0.3, 100);
-ref = timeseries(y0 * ones(1,length(t)), t);
-
-ref.Data(1,t>0.1) = 0.9;
-
+t = linspace(0, 0.3, 100)';
+r = struct;
+r.Time = t;
+r.Data = ones(length(t),1) * y0';
+r.Data(t>0.1, 1) = 0.9;
+CONFIG.r = r;
 
 
 %%

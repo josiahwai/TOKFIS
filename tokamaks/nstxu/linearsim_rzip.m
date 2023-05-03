@@ -19,7 +19,7 @@ ny = 3;
 
 PS.vmax = circ.vmax * inf;
 PS.vmin = circ.vmin * inf;
-PS.delay = 1e-4;
+PS.delay = 8e-4;
 
 x0 = zeros(nx,1);
 y0 = zeros(ny,1);
@@ -30,10 +30,10 @@ simset.max_step_size = 1e-3;
 simset.stop_time = 0.3;
 
 n = 100;
-t = linspace(0, 0.3, n)';
-rdata = zeros(n, 3);
-rdata(t>0.001, 1) = 0.01;
-r = timeseries(rdata, t);
+r = struct;
+r.Time = linspace(0, 0.3, n)';
+r.Data = zeros(n, 3);
+r.Data(r.Time>0.001, 2) = 0.01;
 
 controlfun_name = 'rzip_controller';
 
@@ -42,11 +42,12 @@ CONFIG.controlfun_unicode = double(controlfun_name); % pass the name of the cont
 CONFIG.ip = sys.eq.cpasma;
 CONFIG.iy = struct('rcur', 1, 'zcur', 2, 'cpasma', 3);
 CONFIG.nu = 8;
+CONFIG.r = r;
 
 
 % run model
-out = run_slx_model('linearsim_slx', r, sys, PS, x0, y0, dydx, CONFIG, simset);
-out.y.Data = squeeze(out.y.Data)';
+% out = run_slx_model('linearsim_slx', r, sys, PS, x0, y0, dydx, CONFIG, simset);
+out = sim('linearsim_slx', simset.stop_time);
 
 
 % plot outputs
