@@ -18,6 +18,11 @@ c.iv = c.x(tok.nc + (1:tok.nv), :);
 c.ip = c.x(tok.nc+tok.nv+1,:);
 c.cpasma = c.ip;
 
+for i = 1:length(tok.ccnames)  % labeled coil currents
+  coil = tok.ccnames{i};
+  c.(coil) = c.ic(i,:);
+end
+
 % build flux responses
 dz = mean(diff(tok.zg));
 dr = mean(diff(tok.rg));

@@ -215,7 +215,11 @@ iuse = [4 14 15 25];
 
 
 %% STEP 3D: ADD VERTICAL CURRENT COMPENSATION
-% Not necessary for NSTX-U, see this of analysis for kstar/sparc
+%
+% On NSTXU the vertical stability coil set (primarily PF3) are full-sized
+% poloidal field coil, so current compensation is not needed. This is 
+% important for KSTAR/SPARC where the vertical coils are fast but with
+% smaller current capacity. See KSTAR/SPARC tutorials for analysis.
 
 
 %% STEP 3E: ANALYZE AND TUNE LINEAR SYSTEM PERFORMANCE
@@ -306,58 +310,23 @@ sys = models{2};
 linearsim_rzip(sys, tok, circ)
 
 
+%% STEP 5: CHOOSE SHAPE CONTROL DESIGN
+% This tutorial will cover both output-feedback and MPC
 
 
-%% STEP 6: C-INVERSE LINEAR SHAPE CONTROL
-
-clearvars -except models circ tok
- 
-
-
-
+%% STEP 6: SHAPE INVERSE CONTROL
+shape_cinv_controlsim        % this is a control simulation based on the 
 
 
 
 
+%% STEP 10: NONLINEAR SIMULATION
 
 
 
-%%
-
-% CINV-BASED SHAPE CONTROL DEVELOPMENT
-%
-% cdata = build_cdata(dpsizrdx)
-% Kshape = cmat_inversion(cdata, wts, targets, fds2control ...)
-% control_freq_analysis(sys, Kshape, Kcoil, Kz, Kr, Kip ...)
-% linear_sim(sys, K...)
-%
-% TRY AGAIN WITH VERTICAL COMPENSATION:
-% cdata = build_cdata(dpsizrdx)
-% u = shapecontrol(y, c.iy, tnow, config)
-% linearsim(@shapecontrol, sys, eq, K ...)
-%
-% FIND RHP ZERO DIRECTION AND PENALIZE IT
-% rhp_zero_analysis(...)
-% wt = 
-% K = cmat_inversion(wt, ....)
-% coil_current_step_response(vec1, ...
-% coil_current_step_response(vec2, ...
-%
-% Can cross-test with other equilibria, sys (i.e.)
-% linearsim(sys2, eq, K ...)
 
 
 
-% MODEL PREDICTIVE CONTROL 
-%
-% define_lotsa_stuff(...)
-% control_freq_analysis(...)
-% linear_sim(...)
-% also penalize RHP zero direction
-
-
-
-% NONLINEAR SIMULATIONS - LOTS OF EXAMPLES
 
 
 
