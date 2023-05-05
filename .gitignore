@@ -13,6 +13,14 @@ todo.txt
 **/slprj*
 *.xml
 **/gs/*
+**/clutter*
+**/reference*
+*kstar.slx
+*kstar_lite.slx
+*nstxu.slx
+*nstxu_lite.slx
+
+
 
 # exceptions (specific mat files to track)
 

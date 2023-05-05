@@ -311,8 +311,7 @@ linearsim_rzip(sys, tok, circ)
 
 
 %% STEP 5: CHOOSE SHAPE CONTROL DESIGN
-% This tutorial will cover both output-feedback and MPC
-
+% no need to choose, this tutorial will cover both
 
 %% STEP 6: SHAPE INVERSE CONTROL
 shape_cinv_controlsim        % this is a control simulation based on the 
